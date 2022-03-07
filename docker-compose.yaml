@@ -1,0 +1,58 @@
+version: '3.7'
+
+services:
+  db:
+    image: mariadb:10.7.3
+    container_name: database
+    networks:
+      - docker_flask_network
+    expose:
+      - '3306'
+    volumes:
+      - ./sql/docker_flask_test.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - ./sql/data:/var/lib/mysql      
+    environment:
+      TZ: Asia/Taipei
+      MYSQL_ROOT_PASSWORD: J;fzsa1iqM;sU.3STxYY
+      MYSQL_DATABASE: docker_flask_test
+      MYSQL_USER: docker_flask_test
+      MYSQL_PASSWORD: h;MkqDRCmQouK4T6W3qQ
+  
+  db_admin:
+    image: phpmyadmin/phpmyadmin:5.1.3
+    container_name: db_admin
+    networks:
+      - docker_flask_network
+    ports:
+      - '8080:80'
+    depends_on:
+      - db
+    environment:
+      TZ: Asia/Taipei
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: docker_flask_test
+      PMA_PASSWORD: h;MkqDRCmQouK4T6W3qQ
+
+  web_api:
+    build: ./web_api
+    container_name: web_api
+    networks:
+      - docker_flask_network
+    ports:
+      - '5000:5000'
+    depends_on:
+      - db
+    volumes:
+      - ./web_api:/usr/src/app
+    environment:
+      TZ: Asia/Taipei
+      APP_SQL_HOST: db
+      APP_SQL_PORT: 3306
+      APP_SQL_DATABASE: docker_flask_test
+      APP_USER: docker_flask_test
+      APP_PASSWORD: h;MkqDRCmQouK4T6W3qQ
+
+networks:
+  docker_flask_network:
+    driver: bridge
